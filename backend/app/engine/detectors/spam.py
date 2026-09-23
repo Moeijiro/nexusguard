@@ -4,11 +4,13 @@ Both are sliding windows per member. When one fires, the member's window is
 cleared and a cooldown starts, so one burst becomes one security event rather
 than one per message.
 
-Severity:
-    flood       >= max_messages          -> medium
-                >= 2 x max_messages      -> high
-    duplicates  >= max_repeats           -> medium
-                >= 2 x max_repeats       -> high
+Both fire the moment a threshold is reached, so severity comes from *what*
+the burst looks like, not from overshooting the threshold:
+
+    flood       max_messages within the window             -> medium
+                ...and within half the window (scripted)    -> high
+    duplicates  max_repeats of the same message             -> medium
+                ...and the message has a link or a mention  -> high (scam pattern)
 """
 
 from __future__ import annotations
@@ -23,6 +25,7 @@ from app.engine.severity import Severity
 from app.engine.state import WindowStore
 
 _WHITESPACE = re.compile(r"\s+")
+_LINK_OR_MENTION = re.compile(r"https?://|discord\.gg/|<@[!&]?\d+>", re.IGNORECASE)
 
 
 def _fingerprint(content: str) -> str:
@@ -46,7 +49,7 @@ class MessageFloodDetector:
         state.clear(key)
         state.start_cooldown(key, event.at, rule.window_seconds)
         span = max((hits[-1][0] - hits[0][0]).total_seconds(), 0.1)
-        severity = Severity.HIGH if count >= 2 * rule.max_messages else Severity.MEDIUM
+        severity = Severity.HIGH if span <= rule.window_seconds / 2 else Severity.MEDIUM
         return Detection(
             module=self.module,
             type=EventType.SPAM_DETECTED,
@@ -76,7 +79,8 @@ class DuplicateMessagesDetector:
             return None
         state.clear(key)
         state.start_cooldown(key, event.at, rule.window_seconds)
-        severity = Severity.HIGH if repeats >= 2 * rule.max_repeats else Severity.MEDIUM
+        has_link = bool(_LINK_OR_MENTION.search(event.content))
+        severity = Severity.HIGH if has_link else Severity.MEDIUM
         return Detection(
             module=self.module,
             type=EventType.SPAM_DETECTED,
@@ -86,5 +90,5 @@ class DuplicateMessagesDetector:
             channel_id=event.channel_id,
             message_id=event.message_id,
             metadata={"repeats": repeats, "window_seconds": rule.window_seconds, "threshold": rule.max_repeats,
-                      "kind": "duplicate", "excerpt": event.content[:120]},
+                      "kind": "duplicate", "has_link_or_mention": has_link, "excerpt": event.content[:120]},
         )
