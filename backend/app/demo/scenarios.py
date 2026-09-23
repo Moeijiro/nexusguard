@@ -65,7 +65,7 @@ def raid(rng: random.Random, guild: str, at: datetime) -> list[Event]:
 
 def new_accounts(rng: random.Random, guild: str, at: datetime) -> list[Event]:
     return [MemberJoinEvent(guild, _member(rng, at=at, age_days=rng.uniform(0.02, 0.9)),
-                            at + timedelta(minutes=i * rng.uniform(1, 6))) for i in range(rng.randint(1, 2))]
+                            at + timedelta(seconds=i * rng.uniform(5, 40))) for i in range(rng.randint(1, 2))]
 
 
 def admin_grant(rng: random.Random, guild: str, at: datetime) -> list[Event]:

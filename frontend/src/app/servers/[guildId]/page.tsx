@@ -17,28 +17,33 @@ import { cn } from "@/lib/utils";
 
 const POLL_MS = 4000;
 
-/** Polls for events newer than the newest one on screen and prepends them. */
+/** Polls for events newer than the newest one on screen and merges them in (deduplicated, newest first). */
 function useLiveEvents(guildId: string, initial: SecurityEvent[] | undefined) {
   const [events, setEvents] = useState<SecurityEvent[] | null>(null);
   const [fresh, setFresh] = useState<Set<number>>(new Set());
   const [live, setLive] = useState(true);
-  const newest = useRef(0);
+  const newest = useRef<number | null>(null);
 
   const list = events ?? initial ?? [];
-  const newestId = list[0]?.id;
+  const newestId = list.reduce<number | null>((max, e) => (max === null || e.id > max ? e.id : max), null);
   useEffect(() => {
-    if (newestId !== undefined) newest.current = newestId;
+    newest.current = newestId;
   }, [newestId]);
 
   useEffect(() => {
-    if (!live) return;
+    if (!live || initial === undefined) return;
     const timer = setInterval(async () => {
       try {
-        const page = await api.events(guildId, { after_id: newest.current, limit: 20 });
-        if (page.items.length) {
-          setEvents((current) => [...page.items, ...(current ?? initial ?? [])].slice(0, 40));
-          setFresh(new Set(page.items.map((e) => e.id)));
-        }
+        const page = await api.events(guildId, { after_id: newest.current ?? 0, limit: 20 });
+        if (!page.items.length) return;
+        setEvents((current) => {
+          const byId = new Map<number, SecurityEvent>();
+          for (const e of [...page.items, ...(current ?? initial)]) byId.set(e.id, e);
+          return [...byId.values()]
+            .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id - a.id)
+            .slice(0, 40);
+        });
+        setFresh(new Set(page.items.map((e) => e.id)));
       } catch {
         /* keep the last good stream; the next poll retries */
       }

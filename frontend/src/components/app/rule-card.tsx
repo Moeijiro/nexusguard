@@ -16,7 +16,7 @@ const NUMBERS: Record<string, { label: string; unit: string; min: number; max: n
   max_messages: { label: "Messages", unit: "msgs", min: 2, max: 50 },
   max_repeats: { label: "Identical messages", unit: "times", min: 2, max: 20 },
   window_seconds: { label: "Within", unit: "sec", min: 2, max: 600 },
-  max_mentions: { label: "Mention limit", unit: "per msg", min: 2, max: 50 },
+  max_mentions: { label: "Mentions per message", unit: "pings", min: 2, max: 50 },
   join_threshold: { label: "Joins", unit: "joins", min: 3, max: 500 },
   timeout_minutes: { label: "Timeout length", unit: "min", min: 1, max: 1440 },
   raid_mode_minutes: { label: "Raid mode lasts", unit: "min", min: 5, max: 1440 },
