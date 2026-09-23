@@ -44,6 +44,8 @@ class RestExecutor:
                     logger.warning("Discord rate limit on %s; retrying in %.2fs", path, retry)
                     await asyncio.sleep(min(retry, 10))
                     continue
+                if response.status_code == 429:
+                    raise ExecutorError("Rate limited by Discord")
                 if response.status_code == 403:
                     raise ExecutorError("Missing permission, or the member is above NexusGuard's role")
                 if response.status_code == 404:
