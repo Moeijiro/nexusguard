@@ -83,7 +83,7 @@ class Pipeline:
         if ctx is None:
             return []  # not a protected guild
         if ctx.raid_mode and ctx.raid_mode_until and event.at >= ctx.raid_mode_until:
-            self.store.set_raid_mode(ctx.guild_id, False, None, "Raid mode expired", "NexusGuard")
+            self.store.set_raid_mode(ctx.guild_id, False, None, "Raid mode expired", "NexusGuard", event.at)
             ctx.raid_mode = False
 
         if isinstance(event, ModerationEvent):
@@ -115,7 +115,7 @@ class Pipeline:
 
         if decision.raid_mode_minutes:
             until = at + timedelta(minutes=decision.raid_mode_minutes)
-            self.store.set_raid_mode(ctx.guild_id, True, until, detection.summary, "NexusGuard (automatic)")
+            self.store.set_raid_mode(ctx.guild_id, True, until, detection.summary, "NexusGuard (automatic)", at)
             ctx.raid_mode, ctx.raid_mode_until = True, until
 
         results = await self._execute(decision.actions, detection, decision.severity, ctx, at,

@@ -62,9 +62,11 @@ def context_for(guild: Guild) -> GuildContext:
     )
 
 
-def set_raid_mode(guild: Guild, enabled: bool, until: datetime | None, reason: str, by: str) -> None:
+def set_raid_mode(
+    guild: Guild, enabled: bool, until: datetime | None, reason: str, by: str, at: datetime | None = None
+) -> None:
     guild.raid_mode = enabled
     guild.raid_mode_until = until if enabled else None
-    guild.raid_mode_since = utcnow() if enabled else None
+    guild.raid_mode_since = (at or utcnow()) if enabled else None
     guild.raid_mode_reason = reason if enabled else None
     guild.raid_mode_by = by if enabled else None

@@ -69,3 +69,20 @@ class Flag(Base):
     resolved_by: Mapped[str | None] = mapped_column(String(100), default=None)
     resolved_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
+
+
+class AuditEntry(Base):
+    """Who changed what from the dashboard or a slash command: rules, settings,
+    raid mode, review decisions. Protection config is security-relevant too."""
+
+    __tablename__ = "audit_entries"
+    __table_args__ = (Index("ix_audit_guild_time", "guild_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    guild_id: Mapped[int] = mapped_column(ForeignKey("guilds.id", ondelete="CASCADE"))
+    actor_id: Mapped[str | None] = mapped_column(String(32), default=None)
+    actor_name: Mapped[str] = mapped_column(String(100))
+    action: Mapped[str] = mapped_column(String(40))  # rule.updated, settings.updated, raid_mode.enabled, ...
+    target: Mapped[str | None] = mapped_column(String(100), default=None)
+    changes: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)

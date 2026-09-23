@@ -67,11 +67,13 @@ class SqlStore:
                 )
             ) or 0
 
-    def set_raid_mode(self, guild_id: str, enabled: bool, until: datetime | None, reason: str, by: str) -> None:
+    def set_raid_mode(
+        self, guild_id: str, enabled: bool, until: datetime | None, reason: str, by: str, at: datetime | None = None
+    ) -> None:
         with self._session_factory() as db:
             guild = self._guild(db, guild_id)
             if guild is not None:
-                guild_service.set_raid_mode(guild, enabled, until, reason, by)
+                guild_service.set_raid_mode(guild, enabled, until, reason, by, at)
                 db.commit()
         self.invalidate(guild_id)
 
