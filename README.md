@@ -1,5 +1,7 @@
 # NexusGuard
 
+**Portfolio case study:** [moeijiro.github.io/portfolio/projects/nexusguard](https://moeijiro.github.io/portfolio/projects/nexusguard/) · **Live demo:** not hosted — the app runs locally in a few commands (see below).
+
 **Rule-based security and moderation for Discord servers.** NexusGuard watches member
 joins, messages, role changes and manual moderation. It runs them through a
 **detection engine**, a **rule engine** and an **action engine**, then acts in Discord and
