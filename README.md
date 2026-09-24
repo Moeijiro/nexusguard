@@ -464,6 +464,16 @@ CI (GitHub Actions) runs the tests, and lints and builds the dashboard.
   Discord's own limits, which is part of why raid mode restricts rather than kicks.
 - **Shared demo.** Demo users all share the same simulated servers.
 
+## Deployment
+
+There is no hosted instance; the project is set up to deploy as separate processes:
+
+- **API:** `uvicorn app.main:app --host 0.0.0.0 --port 8000` with `ENVIRONMENT=production`. The app refuses to start in production if `SECRET_KEY` is weak or `COOKIE_SECURE` is false.
+- **Web:** `cd frontend && npm ci && npm run build && npm start`, with `NEXT_PUBLIC_API_URL` pointing at the API.
+- **Bot:** `python -m app.bot` with `DISCORD_BOT_TOKEN` is a separate process sharing the database with the API. Set `DEMO_ENABLED=false` for a real server.
+- **Database:** `DATABASE_URL` takes any SQLAlchemy URL. The project is developed and tested on SQLite.
+- **Cookies:** serve the web app and the API from the same site (for example `app.example.com` and `api.example.com`) so the SameSite session cookie is sent, and set `COOKIE_SECURE=true` behind HTTPS.
+
 ## License
 
 MIT © Moeijiro
